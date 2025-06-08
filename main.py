@@ -1,14 +1,14 @@
-# Import necessary libraries
+# Necessary libraries
 import cv2  # For camera access and image processing
-import tkinter as tk  # For GUI
+import tkinter as tk 
 from tkinter import ttk  # For themed widgets in Tkinter
-from PIL import Image, ImageTk  # For handling images in Tkinter
+from PIL import Image, ImageTk
 import threading  # (Not used yet, but may be useful for future threading)
 import requests  # For API calls (to be used later)
 
 class PlantVisionApp:
     def __init__(self, root):
-        # Set up the main window
+        # Main window
         self.root = root
         self.root.title('PlantVision - Live Plant Health Analyzer')
         self.root.geometry('900x700')
@@ -21,7 +21,7 @@ class PlantVisionApp:
         self.status_label = ttk.Label(self.root, text='Status: Waiting for camera...', font=('Arial', 14))
         self.status_label.pack(pady=10)
         
-        # Open the default camera (usually the first webcam)
+        # Opens the default camera (usually the first webcam)
         self.cap = cv2.VideoCapture(0)
         self.running = True  # Control flag for the video loop
         self.update_video()  # Start updating the video feed
@@ -33,7 +33,7 @@ class PlantVisionApp:
         # This function grabs a frame from the camera and updates the GUI
         if not self.running:
             return
-        ret, frame = self.cap.read()  # Read a frame from the camera
+        ret, frame = self.cap.read()
         if ret:
             # Placeholder for health analysis (to be added later)
             # frame = self.analyze_frame(frame)
