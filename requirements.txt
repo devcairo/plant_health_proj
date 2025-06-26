@@ -1,3 +1,5 @@
 opencv-python
 requests
-pillow 
+pillow
+tensorflow
+numpy 
