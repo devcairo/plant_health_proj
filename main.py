@@ -9,6 +9,9 @@ import tensorflow as tf  # For AI model inference
 import numpy as np  # For numerical operations
 import os  # For file operations
 
+MODEL_URL = "https://github.com/OlafenwaMoses/IdenProf/releases/download/v1.0/plant_disease_model.h5"
+MODEL_PATH = "plant_disease_model.h5"
+
 class PlantVisionApp:
     def __init__(self, root):
         # Main window
@@ -41,13 +44,30 @@ class PlantVisionApp:
         # Handle window close event to release camera properly
         self.root.protocol('WM_DELETE_WINDOW', self.on_close)
 
+    def ensure_model_downloaded(self):
+        """Check if the model file exists, and download it if not."""
+        if not os.path.exists(MODEL_PATH):
+            self.status_label.config(text='Status: Downloading AI model...')
+            try:
+                response = requests.get(MODEL_URL, stream=True)
+                response.raise_for_status()
+                with open(MODEL_PATH, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                self.status_label.config(text='Status: Model downloaded successfully!')
+            except Exception as e:
+                self.status_label.config(text=f'Status: Error downloading model: {str(e)}')
+                raise
+
     def load_ai_model(self):
-        """Load the pre-trained plant disease detection model"""
+        """Loads the pre-trained plant disease detection model"""
         try:
-            # For now, we'll use a placeholder. In the next step, we'll download a real model
+            self.ensure_model_downloaded()
+            self.model = tf.keras.models.load_model(MODEL_PATH)
             self.status_label.config(text='Status: AI model loaded successfully!')
             self.model_loaded = True
-            print("AI model placeholder loaded - ready for real model integration")
+            print("AI model loaded from file.")
         except Exception as e:
             self.status_label.config(text=f'Status: Error loading AI model: {str(e)}')
             print(f"Error loading AI model: {e}")
