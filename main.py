@@ -9,7 +9,7 @@ import tensorflow as tf  # For AI model inference
 import numpy as np  # For numerical operations
 import os  # For file operations
 
-MODEL_URL = "https://github.com/OlafenwaMoses/IdenProf/releases/download/v1.0/plant_disease_model.h5"
+MODEL_URL = "https://github.com/yashreadytobox/plant-leaf-disease-detection/raw/main/Trained_Model_vgg16.h5"
 MODEL_PATH = "plant_disease_model.h5"
 
 class PlantVisionApp:
@@ -19,6 +19,10 @@ class PlantVisionApp:
         self.root.title('PlantVision - Live Plant Health Analyzer')
         self.root.geometry('900x700')
         
+        # Label to display status messages (e.g., health, watering info)
+        self.status_label = ttk.Label(self.root, text='Status: Loading AI model...', font=('Arial', 14))
+        self.status_label.pack(pady=10)
+        
         # AI Model setup
         self.model = None
         self.model_loaded = False
@@ -27,10 +31,6 @@ class PlantVisionApp:
         # Label to display the video feed
         self.video_label = ttk.Label(self.root)
         self.video_label.pack(pady=10)
-        
-        # Label to display status messages (e.g., health, watering info)
-        self.status_label = ttk.Label(self.root, text='Status: Loading AI model...', font=('Arial', 14))
-        self.status_label.pack(pady=10)
         
         # Label to display AI analysis results
         self.ai_result_label = ttk.Label(self.root, text='AI Analysis: Not started', font=('Arial', 12))
