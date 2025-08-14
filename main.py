@@ -37,6 +37,13 @@ class PlantVisionApp:
         self.ai_result_label = ttk.Label(self.root, text='AI Analysis: Not started', font=('Arial', 12))
         self.ai_result_label.pack(pady=5)
         
+        # Button to start AI analysis
+        self.analyze_button = ttk.Button(self.root, text='Start Plant Analysis', command=self.toggle_analysis)
+        self.analyze_button.pack(pady=5)
+        
+        # Analysis control flag
+        self.analysis_active = False
+        
         # Opens the default camera (usually the first webcam)
         self.cap = cv2.VideoCapture(0)
         self.running = True  # Control flag for the video loop
@@ -53,9 +60,16 @@ class PlantVisionApp:
                 print(f"Model file not found: {MODEL_PATH}")
                 return
             
-            # Load the PyTorch model
-            self.model = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
-            self.model.eval()  # Set to evaluation mode
+            # Create the model architecture with 120 output classes (matching the pre-trained model)
+            self.model = models.mobilenet_v2(pretrained=False, num_classes=120)
+            
+            # Load the state dictionary (weights) into the model
+            state_dict = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
+            self.model.load_state_dict(state_dict)
+            
+            # Set to evaluation mode
+            self.model.eval()
+            
             self.status_label.config(text='Status: AI model loaded successfully!')
             self.model_loaded = True
             print("PyTorch model loaded from file.")
@@ -65,14 +79,18 @@ class PlantVisionApp:
 
     def preprocess_frame_for_ai(self, frame):
         """Preprocess the frame for AI model input"""
-        # Resize to model input size (typically 224x224 for MobileNetV2)
+        # Resize to model input size (224x224 for MobileNetV2)
         resized = cv2.resize(frame, (224, 224))
         # Convert BGR to RGB
         rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
-        # Normalize pixel values to [0, 1]
+        # Convert to float and normalize to [0, 1]
         normalized = rgb.astype(np.float32) / 255.0
-        # Convert to PyTorch tensor format (C, H, W)
-        tensor = torch.from_numpy(normalized).permute(2, 0, 1)
+        # Apply ImageNet normalization (mean and std)
+        mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+        std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+        normalized = (normalized - mean) / std
+        # Convert to PyTorch tensor format (C, H, W) with float32
+        tensor = torch.from_numpy(normalized).permute(2, 0, 1).float()
         # Add batch dimension
         batched = tensor.unsqueeze(0)
         return batched
@@ -101,25 +119,43 @@ class PlantVisionApp:
         # This will need to be updated based on the actual model's classes
         return "Plant Analysis Complete"
 
+    def toggle_analysis(self):
+        """Toggles the AI analysis on/off"""
+        if self.model_loaded:
+            if self.analysis_active:
+                self.stop_analysis()
+            else:
+                self.start_analysis()
+        else:
+            self.ai_result_label.config(text='AI Analysis: Model not loaded!')
+
+    def start_analysis(self):
+        """Start the AI analysis when button is pressed"""
+        if self.model_loaded:
+            self.analysis_active = True
+            self.analyze_button.config(text='Analysis Active - Click to Stop')
+            self.ai_result_label.config(text='AI Analysis: Ready - Point camera at plant')
+        else:
+            self.ai_result_label.config(text='AI Analysis: Model not loaded!')
+
+    def stop_analysis(self):
+        """Stop the AI analysis"""
+        self.analysis_active = False
+        self.analyze_button.config(text='Start Plant Analysis')
+        self.ai_result_label.config(text='AI Analysis: Stopped')
+
     def update_video(self):
         # This function grabs a frame from the camera and updates the GUI
         if not self.running:
             return
         ret, frame = self.cap.read()
         if ret:
-            # Run AI analysis on the frame (every 30 frames to avoid lag)
-            if hasattr(self, 'frame_count'):
-                self.frame_count += 1
-            else:
-                self.frame_count = 0
-            
-            # Run AI analysis every 30 frames (about once per second at 30 FPS)
-            if self.frame_count % 30 == 0 and self.model_loaded:
+            # Only run AI analysis if user has activated it
+            if self.analysis_active and self.model_loaded:
                 ai_result = self.analyze_frame_with_ai(frame)
                 self.ai_result_label.config(text=f'AI Analysis: {ai_result}')
             
-            # Placeholder for health analysis (to be added later)
-            # frame = self.analyze_frame(frame)
+            # Convert frame for display
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB for Tkinter
             img = Image.fromarray(rgb)  # Convert to PIL Image
             imgtk = ImageTk.PhotoImage(image=img)  # Convert to Tkinter-compatible image
