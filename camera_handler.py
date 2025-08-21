@@ -12,8 +12,8 @@ The camera handler provides a clean interface for:
 - Video format conversion (OpenCV to Tkinter)
 - Resource cleanup
 
-Author: PlantVision Team
-Date: 2024
+Author: Sa'Cairo Bonner
+Date: 2025
 """
 
 import cv2

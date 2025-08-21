@@ -1,5 +1,5 @@
 # PlantVillage Dataset Class Mapping
-# This is likely what your MobileNetV2 model was trained on
+# This is likely what the MobileNetV2 model was trained on
 # 120 classes total: 38 plant species x 3 categories (healthy, diseased, multiple diseases)
 
 PLANT_CLASSES = {

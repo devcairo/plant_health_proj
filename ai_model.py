@@ -9,8 +9,8 @@ and provides methods for preprocessing images and analyzing plant health.
 The model can classify 120 different plant species and disease combinations,
 including healthy plants and various disease states.
 
-Author: PlantVision Team
-Date: 2024
+Author: Sa'Cairo Bonner
+Date: 2025
 """
 
 import torch
